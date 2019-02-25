@@ -4,16 +4,21 @@ use std::{
 };
 
 use rodio::{Decoder, Source as RSource, SpatialSink};
-use rodio::source::Buffered;
+use rodio::source::{Buffered, Repeat};
 
 use amethyst_core::specs::{prelude::Component, storage::BTreeStorage};
 
 use crate::{source::Source, DecoderError};
 
+pub(crate) enum SourceHolder {
+    Decoder(Buffered<Decoder<Cursor<Source>>>),
+    Repeat(Repeat<RSource>),
+}
+
 /// An audio source, add this component to anything that emits sound.
 #[derive(Default)]
 pub struct AudioEmitter {
-    pub(crate) sources: HashMap<String, Buffered<Decoder<Cursor<Source>>>>,
+    pub(crate) sources: HashMap<String, SourceHolder>,
     pub(crate) sinks: HashMap<String, SpatialSink>,
 }
 
@@ -28,7 +33,7 @@ impl AudioEmitter {
     /// Plays an audio source from this emitter.
     pub fn play(&mut self, name: String, source: &Source) -> Result<(), DecoderError> {
         let source = Decoder::new(Cursor::new(source.clone())).map_err(|_| DecoderError)?.buffered();
-        self.sources.insert(name, source);
+        self.sources.insert(name, SourceHolder::Decoder(source));
         Ok(())
     }
 }

@@ -15,7 +15,7 @@ use amethyst_core::{
 };
 
 use crate::{
-    components::{AudioEmitter, AudioListener},
+    components::{AudioEmitter, AudioListener, SourceHolder},
     output::Output,
 };
 
@@ -71,6 +71,10 @@ impl<'a> System<'a> for AudioSystem {
                                     left_ear_position.into(),
                                     right_ear_position.into(),
                                 );
+                                let source = match source {
+                                    SourceHolder::Decoder(s) => s,
+                                    SourceHolder::Repeat(s) => s,
+                                };
                                 sink.append(source.clone());
                                 audio_emitter.sinks.insert(name.to_string(), sink);
                             }

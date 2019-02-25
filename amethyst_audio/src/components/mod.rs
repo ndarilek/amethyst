@@ -1,6 +1,7 @@
 //! `amethyst` audio ecs components
 
 pub use self::{audio_emitter::AudioEmitter, audio_listener::AudioListener};
+pub(crate) use self::audio_emitter::SourceHolder;
 
 use amethyst_assets::PrefabData;
 use amethyst_core::{
