@@ -36,7 +36,7 @@ impl<'a> System<'a> for AudioSystem {
         Entities<'a>,
         ReadStorage<'a, GlobalTransform>,
         ReadStorage<'a, AudioListener>,
-        WriteStorage<'a, AudioEmitter>,
+        WriteStorage<'a, AudioEmitter<T>>,
     );
 
     fn run(

@@ -3,7 +3,7 @@ use std::{
     io::Cursor,
 };
 
-use rodio::{Decoder, Source as RSource, SpatialSink};
+use rodio::{Decoder, Sample, Source as RSource, SpatialSink};
 use rodio::source::Buffered;
 
 use amethyst_core::specs::{prelude::Component, storage::BTreeStorage};
@@ -12,16 +12,16 @@ use crate::{source::Source, DecoderError};
 
 /// An audio source, add this component to anything that emits sound.
 #[derive(Default)]
-pub struct AudioEmitter {
-    pub(crate) sources: HashMap<String, Buffered<Decoder<Cursor<Source>>>>,
+pub struct AudioEmitter<T: Sample + Sync > {
+    pub(crate) sources: HashMap<String, Box<dyn RSource<Item = T>>>,
     pub(crate) sinks: HashMap<String, SpatialSink>,
 }
 
-impl AudioEmitter {
+impl<T> AudioEmitter<T> {
     /// Creates a new AudioEmitter component initialized to the given positions.
     /// These positions will stay synced with Transform if the Transform component is available
     /// on this entity.
-    pub fn new() -> AudioEmitter {
+    pub fn new() -> AudioEmitter<T> {
         Default::default()
     }
 
@@ -33,6 +33,6 @@ impl AudioEmitter {
     }
 }
 
-impl Component for AudioEmitter {
+impl<T> Component for AudioEmitter<T> {
     type Storage = BTreeStorage<Self>;
 }

@@ -28,7 +28,7 @@ pub struct AudioPrefab {
 
 impl<'a> PrefabData<'a> for AudioPrefab {
     type SystemData = (
-        WriteStorage<'a, AudioEmitter>,
+        WriteStorage<'a, AudioEmitter<T>>,
         WriteStorage<'a, AudioListener>,
         Option<Read<'a, Output>>,
     );
