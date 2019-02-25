@@ -19,7 +19,6 @@ pub mod output;
 
 mod bundle;
 mod components;
-mod end_signal;
 mod formats;
 mod sink;
 mod source;

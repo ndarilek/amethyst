@@ -1,10 +1,10 @@
 use std::{
+    collections::HashMap,
     io::Cursor,
-    sync::{atomic::AtomicBool, Arc},
 };
 
-use rodio::{Decoder, SpatialSink};
-use smallvec::SmallVec;
+use rodio::{Decoder, Source as RSource, SpatialSink};
+use rodio::source::Buffered;
 
 use amethyst_core::specs::{prelude::Component, storage::BTreeStorage};
 
@@ -13,9 +13,8 @@ use crate::{source::Source, DecoderError};
 /// An audio source, add this component to anything that emits sound.
 #[derive(Default)]
 pub struct AudioEmitter {
-    pub(crate) sinks: SmallVec<[(SpatialSink, Arc<AtomicBool>); 4]>,
-    pub(crate) sound_queue: SmallVec<[Decoder<Cursor<Source>>; 4]>,
-    pub(crate) picker: Option<Box<dyn FnMut(&mut AudioEmitter) -> bool + Send + Sync>>,
+    pub(crate) sources: HashMap<String, Buffered<Decoder<Cursor<Source>>>>,
+    pub(crate) sinks: HashMap<String, SpatialSink>,
 }
 
 impl AudioEmitter {
@@ -27,26 +26,10 @@ impl AudioEmitter {
     }
 
     /// Plays an audio source from this emitter.
-    pub fn play(&mut self, source: &Source) -> Result<(), DecoderError> {
-        self.sound_queue
-            .push(Decoder::new(Cursor::new(source.clone())).map_err(|_| DecoderError)?);
+    pub fn play(&mut self, name: String, source: &Source) -> Result<(), DecoderError> {
+        let source = Decoder::new(Cursor::new(source.clone())).map_err(|_| DecoderError)?.buffered();
+        self.sources.insert(name, source);
         Ok(())
-    }
-
-    /// An emitter's picker will be called by the AudioSystem whenever the emitter runs out of
-    /// sounds to play.
-    ///
-    /// During callback the picker is separated from the emitter in order to avoid multiple
-    /// aliasing.
-    /// After the callback is complete, if the picker returned true then the
-    /// picker that just finished will be reattached.
-    pub fn set_picker(&mut self, picker: Box<dyn FnMut(&mut AudioEmitter) -> bool + Send + Sync>) {
-        self.picker = Some(picker);
-    }
-
-    /// Clears the previously set picker.
-    pub fn clear_picker(&mut self) {
-        self.picker = None;
     }
 }
 
